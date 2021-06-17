@@ -1,4 +1,4 @@
-const SimpleStorage = artifacts.require('SimpleStore');
+const SimpleStorage = artifacts.require('SimpleStorage');
 
 module.exports = async function(deployer, network, accounts) {
   // Deploy Simple Storage

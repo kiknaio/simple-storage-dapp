@@ -11,6 +11,7 @@ module.exports = {
   },
   contracts_directory: './src/contracts/',
   contracts_build_directory: './src/abis/',
+  migrations_directory: './migrations',
   compilers: {
     solc: {
       optimizer: {
