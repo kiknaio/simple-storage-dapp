@@ -1,5 +1,10 @@
-const Migrations = artifacts.require("Migrations");
+const SimpleStorage = artifacts.require('SimpleStorage');
 
-module.exports = function(deployer) {
-  deployer.deploy(Migrations);
-};
+module.exports = async function(deployer, network, accounts) {
+  // Deploy Simple Storage
+  await deployer.deploy(SimpleStorage);
+  const simpleStorage = await SimpleStorage.deployed();
+
+  // Save simple text
+  await simpleStorage.updateSimpleStorage("Simple text in simple storage");
+}
