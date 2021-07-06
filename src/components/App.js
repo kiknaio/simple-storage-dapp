@@ -14,6 +14,7 @@ export default (props) => {
   const [account, setAccount] = useState(null);
   const [simpleStorageValue, setSimpleStorageValue] = useState('');
   const [isLoading, setLoadingState] = useState(false);
+  const [isTransactionPending, setTransactionStatus] = useState(false);
   const [newValue, setNewValue] = useState('');
 
   useEffect(() => {
@@ -33,17 +34,12 @@ export default (props) => {
     }
   }
 
-  const loadBlockchainData = async () => {
+  const loadSimpleStorageDate = async () => {
     const web3 = window.web3
-
-    // Set account to app state
-    const accounts = await web3.eth.getAccounts()
-    setAccount(accounts[0]);
-
     // Get network ID
     const networkId = await web3.eth.net.getId()
 
-    // Load DaiToken
+    // Load SimpleStoragee
     const simpleStorageData = SimpleStorage.networks[networkId]
     if(simpleStorageData) {
       // 0x90ACc2F72Bc78137946bD14d6f62a2968b9d2B57
@@ -57,6 +53,16 @@ export default (props) => {
     }
   }
 
+  const loadBlockchainData = async () => {
+    const web3 = window.web3
+
+    // Set account to app state
+    const accounts = await web3.eth.getAccounts()
+    setAccount(accounts[0]);
+
+    await loadSimpleStorageDate();
+  }
+
   const loadWeb3AndBlockchainData = async () => {
     setLoadingState(true);
     await loadWeb3();
@@ -65,10 +71,11 @@ export default (props) => {
   }
 
   const updateValue = () => {
-    setLoadingState(true);
+    setTransactionStatus(true);
     contract.methods.updateSimpleStorage(newValue).send({ from: account }).on('transactionHash', (hash) => {
-      setLoadingState(false);
+      setTransactionStatus(false);
       console.log(hash);
+      loadSimpleStorageDate();
     })
   }
 
@@ -86,7 +93,10 @@ export default (props) => {
       <Row className="justify-content-md-center">
         <Col>
           <h3>Present Value: <pre>{simpleStorageValue}</pre></h3>
-          <pre>{newValue}</pre>
+
+          {isTransactionPending && (
+            <b>Transaction is processing... </b>
+          )}
           
           <Form className="mt-5">
             <Form.Group controlId="updateValue">
