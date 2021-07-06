@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Web3 from 'web3'
+import { Container, Row, Col, Navbar, Form, Button } from 'react-bootstrap';
 
 // import Navbar from './Navbar'
 // import Main from './Main'
@@ -9,9 +10,11 @@ import './App.css'
 import SimpleStorage from '../abis/SimpleStorage.json'
 
 export default (props) => {
+  const [contract, setContract] = useState(null);
   const [account, setAccount] = useState(null);
   const [simpleStorageValue, setSimpleStorageValue] = useState('');
   const [isLoading, setLoadingState] = useState(false);
+  const [newValue, setNewValue] = useState('');
 
   useEffect(() => {
     loadWeb3AndBlockchainData();
@@ -43,8 +46,10 @@ export default (props) => {
     // Load DaiToken
     const simpleStorageData = SimpleStorage.networks[networkId]
     if(simpleStorageData) {
-      const simpleStorage = new web3.eth.Contract(SimpleStorage.abi, '0xBD705c6287e672d8057746868Ecf67e3303D1f56');
-      const simpleStorageValue = await simpleStorage.methods.getSimpleStorageValue().call();
+      // 0x90ACc2F72Bc78137946bD14d6f62a2968b9d2B57
+      const contract = new web3.eth.Contract(SimpleStorage.abi, SimpleStorage.networks['5777'].address);
+      setContract(contract);
+      const simpleStorageValue = await contract.methods.getSimpleStorageValue().call();
 
       setSimpleStorageValue(simpleStorageValue);
     } else {
@@ -59,12 +64,48 @@ export default (props) => {
     setLoadingState(false);
   }
 
+  const updateValue = () => {
+    setLoadingState(true);
+    contract.methods.updateSimpleStorage(newValue).send({ from: account }).on('transactionHash', (hash) => {
+      setLoadingState(false);
+      console.log(hash);
+    })
+  }
+
   if (isLoading) {
     return <h1>Loading...</h1>
   }
 
   return (
-    <h1>SimpleStorage Value: <pre>{simpleStorageValue}</pre></h1>
+    <>
+    <Navbar bg="light" className="mb-5">
+      <Navbar.Brand href="#home">🗃 Simple Storage by <a target="_blank" href="https://github.com/kiknaio">@kiknaio</a></Navbar.Brand>
+    </Navbar>
+
+    <Container>
+      <Row className="justify-content-md-center">
+        <Col>
+          <h3>Present Value: <pre>{simpleStorageValue}</pre></h3>
+          <pre>{newValue}</pre>
+          
+          <Form className="mt-5">
+            <Form.Group controlId="updateValue">
+              <Form.Label>Update value</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Provide a new value"
+                onChange={({ target: { value } }) => setNewValue(value)}
+              />
+            </Form.Group>
+
+            <Button variant="primary" onClick={updateValue}>
+              Update
+            </Button>
+          </Form>
+        </Col>
+      </Row>
+    </Container>
+    </>
   )
 }
 
